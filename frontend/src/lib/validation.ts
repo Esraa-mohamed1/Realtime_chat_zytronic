@@ -26,6 +26,12 @@ export const validateName = (name: string): string | null => {
 export const validateAuthForm = (data: { email: string; password: string; name?: string }, mode: 'login' | 'register'): ValidationError[] => {
   const errors: ValidationError[] = [];
 
+  // Check if all fields are empty first
+  const isAllEmpty = !data.email.trim() && !data.password.trim() && (!data.name || !data.name.trim());
+  if (isAllEmpty) {
+    return [{ field: 'general', message: 'Please fill in all required fields' }];
+  }
+
   const emailError = validateEmail(data.email);
   if (emailError) errors.push({ field: 'email', message: emailError });
 

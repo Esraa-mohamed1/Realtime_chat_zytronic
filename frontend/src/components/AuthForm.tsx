@@ -19,6 +19,14 @@ export default function AuthForm({ mode = 'login', onSubmit, error }: AuthFormPr
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Check if form is completely empty
+    const isFormEmpty = !formData.email.trim() && !formData.password.trim() && (!formData.name || !formData.name.trim());
+    
+    if (isFormEmpty) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    
     // Client-side validation
     const validationErrors = validateAuthForm(formData, mode);
     
