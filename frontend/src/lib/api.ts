@@ -21,30 +21,17 @@ export async function apiPost<T>(path: string, data: any, init?: RequestInit): P
     ...(token && { Authorization: `Bearer ${token}` })
   };
   
-  console.log(`Making POST request to ${API_BASE_URL}${path}`);
-  console.log('Request data:', data);
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(data),
+    ...init
+  });
   
-  try {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(data),
-      ...init
-    });
-    
-    console.log(`Response status: ${res.status}`);
-    
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      console.error('API error response:', errorData);
-      throw new Error(errorData.error || `POST ${path} failed: ${res.status}`);
-    }
-    
-    const responseData = await res.json();
-    console.log('API response data:', responseData);
-    return responseData;
-  } catch (error) {
-    console.error(`API error for ${path}:`, error);
-    throw error;
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || `POST ${path} failed: ${res.status}`);
   }
+  
+  return res.json();
 }

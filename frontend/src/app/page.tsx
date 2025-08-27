@@ -400,15 +400,31 @@ export default function HomePage() {
                 lineHeight: 1.4
               }}>
                 {m.type === 'IMAGE' && m.imageUrl && (
-                  <div style={{ marginBottom: 10 }}>
+                  <div style={{ 
+                    marginBottom: 10,
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}>
                     <img 
                       src={m.imageUrl} 
                       alt="Shared image"
                       style={{
-                        maxWidth: '100%',
+                        width: '100%',
                         maxHeight: '300px',
-                        borderRadius: 10,
-                        objectFit: 'cover'
+                        borderRadius: 15,
+                        objectFit: 'cover',
+                        transition: 'transform 0.3s ease',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+                      }}
+                      onClick={(e) => {
+                        // Simple zoom effect on click
+                        const img = e.currentTarget;
+                        if (img.style.transform === 'scale(1.05)') {
+                          img.style.transform = 'scale(1)';
+                        } else {
+                          img.style.transform = 'scale(1.05)';
+                        }
                       }}
                     />
                   </div>
@@ -445,41 +461,83 @@ export default function HomePage() {
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 15,
+            gap: 20,
             background: 'rgba(102,126,234,0.1)',
             padding: 15,
-            borderRadius: 10
+            borderRadius: 15,
+            boxShadow: '0 4px 15px rgba(102,126,234,0.1)',
+            transition: 'all 0.3s ease'
           }}>
-            <img 
-              src={imagePreview} 
-              alt="Preview"
-              style={{
-                width: 60,
-                height: 60,
-                borderRadius: 8,
-                objectFit: 'cover'
-              }}
-            />
+            <div style={{
+              position: 'relative',
+              width: 80,
+              height: 80,
+              borderRadius: 12,
+              overflow: 'hidden',
+              boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+            }}>
+              <img 
+                src={imagePreview} 
+                alt="Preview"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  transition: 'transform 0.3s ease'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              />
+            </div>
             <div style={{ flex: 1 }}>
-              <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}>
-                Image selected: {selectedImage?.name}
+              <p style={{ 
+                margin: 0, 
+                fontSize: '1rem', 
+                color: '#555',
+                fontWeight: 'bold'
+              }}>
+                Ready to send
               </p>
-              <p style={{ margin: 0, fontSize: '0.8rem', color: '#999' }}>
-                Click Send to share this image
+              <p style={{ 
+                margin: '5px 0 0 0', 
+                fontSize: '0.9rem', 
+                color: '#777',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5
+              }}>
+                <span style={{ fontSize: '1.1rem' }}>📷</span>
+                {selectedImage?.name.length > 25 ? 
+                  selectedImage?.name.substring(0, 25) + '...' : 
+                  selectedImage?.name}
               </p>
             </div>
             <button
               onClick={removeImage}
               style={{
-                background: '#ff6b6b',
+                background: 'linear-gradient(45deg, #ff6b6b, #ee5a52)',
                 color: 'white',
                 border: 'none',
-                borderRadius: '50%',
-                width: 30,
-                height: 30,
+                borderRadius: '12px',
+                width: 36,
+                height: 36,
                 cursor: 'pointer',
-                fontSize: '1rem'
+                fontSize: '1.2rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 10px rgba(255,107,107,0.3)',
+                transition: 'all 0.2s'
               }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.boxShadow = '0 6px 15px rgba(255,107,107,0.4)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 4px 10px rgba(255,107,107,0.3)';
+              }}
+              title="Remove image"
             >
               ×
             </button>
@@ -494,6 +552,149 @@ export default function HomePage() {
         backdropFilter: 'blur(10px)',
         borderTop: '1px solid rgba(255,255,255,0.2)'
       }}>
+        {/* Emoji and Image Controls - Moved above input */}
+        <div style={{ 
+          display: 'flex', 
+          gap: 10, 
+          marginBottom: 15, 
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div style={{ 
+            display: 'flex', 
+            gap: 10, 
+            alignItems: 'center'
+          }}>
+            {/* Image Upload Button */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              style={{ display: 'none' }}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                padding: '12px',
+                background: 'linear-gradient(45deg, #10b981, #059669)',
+                border: 'none',
+                borderRadius: '15px',
+                cursor: 'pointer',
+                fontSize: '1.2rem',
+                width: 45,
+                height: 45,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 15px rgba(16,185,129,0.3)',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(16,185,129,0.4)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 4px 15px rgba(16,185,129,0.3)';
+              }}
+              title="Upload Image"
+            >
+              📷
+            </button>
+            
+            {/* Emoji Button */}
+            <button
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              style={{
+                padding: '12px',
+                background: 'linear-gradient(45deg, #ffd93d, #ff6b6b)',
+                border: 'none',
+                borderRadius: '15px',
+                cursor: 'pointer',
+                fontSize: '1.2rem',
+                width: 45,
+                height: 45,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 15px rgba(255,107,107,0.3)',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(255,107,107,0.4)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 4px 15px rgba(255,107,107,0.3)';
+              }}
+              title="Add Emoji"
+            >
+              😊
+            </button>
+          </div>
+          
+          <div style={{ fontSize: '0.9rem', color: '#666' }}>
+            {selectedImage && (
+              <span style={{ 
+                background: 'rgba(102,126,234,0.1)', 
+                padding: '5px 10px', 
+                borderRadius: 15,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5
+              }}>
+                <span>📷</span> {selectedImage.name.length > 20 ? selectedImage.name.substring(0, 20) + '...' : selectedImage.name}
+              </span>
+            )}
+          </div>
+        </div>
+        
+        {/* Emoji Picker - Floating above input */}
+        {showEmojiPicker && (
+          <div ref={emojiPickerRef} style={{
+            position: 'absolute',
+            background: 'white',
+            borderRadius: 15,
+            padding: 15,
+            boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(8, 1fr)',
+            gap: 8,
+            marginBottom: 10,
+            zIndex: 1000,
+            maxWidth: '400px',
+            transform: 'translateY(-10px)'
+          }}>
+            {emojis.map((emoji, index) => (
+              <button
+                key={index}
+                onClick={() => addEmoji(emoji)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  padding: 5,
+                  borderRadius: 10,
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f0f0f0';
+                  e.currentTarget.style.transform = 'scale(1.2)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        )}
+        
         <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
           <div style={{ position: 'relative', flex: 1 }}>
             <textarea
@@ -517,99 +718,7 @@ export default function HomePage() {
               onFocus={(e) => e.target.style.borderColor = '#667eea'}
               onBlur={(e) => e.target.style.borderColor = '#e1e5e9'}
             />
-            
-            {/* Emoji Picker */}
-            {showEmojiPicker && (
-              <div ref={emojiPickerRef} style={{
-                position: 'absolute',
-                bottom: '100%',
-                left: 0,
-                background: 'white',
-                borderRadius: 15,
-                padding: 15,
-                boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-                display: 'grid',
-                gridTemplateColumns: 'repeat(8, 1fr)',
-                gap: 8,
-                marginBottom: 10,
-                zIndex: 1000
-              }}>
-                {emojis.map((emoji, index) => (
-                  <button
-                    key={index}
-                    onClick={() => addEmoji(emoji)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      fontSize: '1.5rem',
-                      cursor: 'pointer',
-                      padding: 5,
-                      borderRadius: 5,
-                      transition: 'background-color 0.2s'
-                    }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
-          
-          {/* Image Upload Button */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageSelect}
-            style={{ display: 'none' }}
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            style={{
-              padding: '15px',
-              background: 'linear-gradient(45deg, #10b981, #059669)',
-              border: 'none',
-              borderRadius: '50%',
-              cursor: 'pointer',
-              fontSize: '1.5rem',
-              width: 50,
-              height: 50,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 15px rgba(16,185,129,0.3)',
-              transition: 'transform 0.2s'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            📷
-          </button>
-          
-          <button
-            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            style={{
-              padding: '15px',
-              background: 'linear-gradient(45deg, #ffd93d, #ff6b6b)',
-              border: 'none',
-              borderRadius: '50%',
-              cursor: 'pointer',
-              fontSize: '1.5rem',
-              width: 50,
-              height: 50,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 15px rgba(255,107,107,0.3)',
-              transition: 'transform 0.2s'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            😊
-          </button>
           
           <button 
             onClick={onSend} 
