@@ -19,6 +19,10 @@ type Message = {
   senderId?: string;
   type?: 'text' | 'image';
   imageUrl?: string;
+  sender?: {
+    id: string;
+    name: string;
+  };
 };
 
 type AuthResult = {
@@ -36,6 +40,7 @@ export default function HomePage() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,6 +89,7 @@ export default function HomePage() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    setMessages([]);
     toast.success('Logged out successfully! 👋');
   };
 
@@ -91,19 +97,35 @@ export default function HomePage() {
     if (!user) return;
 
     const socket = getSocket();
-    const onConnect = () => setStatus('connected');
+    const onConnect = () => {
+      setStatus('connected');
+      // Load messages when connected
+      socket.emit('load:messages');
+      setIsLoadingMessages(true);
+    };
     const onPong = () => setStatus('pong received');
     const onReceived = (msg: Message) => setMessages((prev) => [...prev, msg]);
+    const onMessagesLoaded = (loadedMessages: Message[]) => {
+      setMessages(loadedMessages);
+      setIsLoadingMessages(false);
+    };
+    const onMessageError = (error: any) => {
+      toast.error(error.error || 'Failed to send message');
+    };
 
     socket.on('connect', onConnect);
     socket.emit('ping');
     socket.on('pong', onPong);
     socket.on('message:received', onReceived);
+    socket.on('messages:loaded', onMessagesLoaded);
+    socket.on('message:error', onMessageError);
 
     return () => {
       socket.off('connect', onConnect);
       socket.off('pong', onPong);
       socket.off('message:received', onReceived);
+      socket.off('messages:loaded', onMessagesLoaded);
+      socket.off('message:error', onMessageError);
     };
   }, [user]);
 
@@ -333,7 +355,17 @@ export default function HomePage() {
         flexDirection: 'column',
         gap: 15
       }}>
-        {messages.length === 0 ? (
+        {isLoadingMessages ? (
+          <div style={{
+            textAlign: 'center',
+            color: 'rgba(255,255,255,0.8)',
+            marginTop: 50,
+            fontSize: '1.2rem'
+          }}>
+            <div style={{ fontSize: '3rem', marginBottom: 20 }}>⏳</div>
+            <p>Loading messages...</p>
+          </div>
+        ) : messages.length === 0 ? (
           <div style={{
             textAlign: 'center',
             color: 'rgba(255,255,255,0.8)',
@@ -384,6 +416,11 @@ export default function HomePage() {
                   marginTop: 5,
                   textAlign: 'right'
                 }}>
+                  {m.sender?.name && (
+                    <span style={{ marginRight: 8 }}>
+                      {m.sender.name}
+                    </span>
+                  )}
                   {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
               </div>
