@@ -17,6 +17,8 @@ type Message = {
   body: string;
   createdAt: string;
   senderId?: string;
+  type?: 'text' | 'image';
+  imageUrl?: string;
 };
 
 type AuthResult = {
@@ -32,8 +34,11 @@ export default function HomePage() {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [authError, setAuthError] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -107,18 +112,95 @@ export default function HomePage() {
     setShowEmojiPicker(false);
   };
 
-  const onSend = () => {
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error('Image size must be less than 5MB');
+        return;
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select a valid image file');
+        return;
+      }
+
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'}/api/uploads/image`, {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to upload image');
+    }
+    
+    const result = await response.json();
+    return result.imageUrl;
+  };
+
+  const onSend = async () => {
     const trimmed = input.trim();
-    if (!trimmed) {
-      toast.error('Please enter a message');
+    const hasImage = selectedImage !== null;
+    
+    if (!trimmed && !hasImage) {
+      toast.error('Please enter a message or select an image');
       return;
     }
-    const socket = getSocket();
-    socket.emit('message:send', { 
-      body: trimmed,
-      senderId: user?.id 
-    });
-    setInput('');
+
+    try {
+      const socket = getSocket();
+      
+      if (hasImage) {
+        // Upload image first
+        const imageUrl = await uploadImage(selectedImage!);
+        
+        // Send image message
+        socket.emit('message:send', { 
+          body: trimmed || '📷 Image',
+          senderId: user?.id,
+          type: 'image',
+          imageUrl
+        });
+        
+        setSelectedImage(null);
+        setImagePreview(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } else {
+        // Send text message
+        socket.emit('message:send', { 
+          body: trimmed,
+          senderId: user?.id,
+          type: 'text'
+        });
+      }
+      
+      setInput('');
+    } catch (error) {
+      toast.error('Failed to send message');
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -219,9 +301,6 @@ export default function HomePage() {
             <h2 style={{ margin: 0, color: '#333', fontSize: '1.5rem' }}>
               Welcome, {user.name}! 👋
             </h2>
-            <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>
-              Status: {status === 'connected' ? '🟢 Online' : '🟡 Connecting...'}
-            </p>
           </div>
         </div>
         <button 
@@ -284,6 +363,20 @@ export default function HomePage() {
                 fontSize: '1.1rem',
                 lineHeight: 1.4
               }}>
+                {m.type === 'image' && m.imageUrl && (
+                  <div style={{ marginBottom: 10 }}>
+                    <img 
+                      src={m.imageUrl} 
+                      alt="Shared image"
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: '300px',
+                        borderRadius: 10,
+                        objectFit: 'cover'
+                      }}
+                    />
+                  </div>
+                )}
                 <div>{m.body}</div>
                 <div style={{
                   fontSize: '0.8rem',
@@ -299,6 +392,59 @@ export default function HomePage() {
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Image Preview */}
+      {imagePreview && (
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          padding: '15px 30px',
+          borderTop: '1px solid rgba(255,255,255,0.2)',
+          position: 'relative'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 15,
+            background: 'rgba(102,126,234,0.1)',
+            padding: 15,
+            borderRadius: 10
+          }}>
+            <img 
+              src={imagePreview} 
+              alt="Preview"
+              style={{
+                width: 60,
+                height: 60,
+                borderRadius: 8,
+                objectFit: 'cover'
+              }}
+            />
+            <div style={{ flex: 1 }}>
+              <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}>
+                Image selected: {selectedImage?.name}
+              </p>
+              <p style={{ margin: 0, fontSize: '0.8rem', color: '#999' }}>
+                Click Send to share this image
+              </p>
+            </div>
+            <button
+              onClick={removeImage}
+              style={{
+                background: '#ff6b6b',
+                color: 'white',
+                border: 'none',
+                borderRadius: '50%',
+                width: 30,
+                height: 30,
+                cursor: 'pointer',
+                fontSize: '1rem'
+              }}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Input Area */}
       <div style={{
@@ -369,6 +515,37 @@ export default function HomePage() {
               </div>
             )}
           </div>
+          
+          {/* Image Upload Button */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageSelect}
+            style={{ display: 'none' }}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              padding: '15px',
+              background: 'linear-gradient(45deg, #10b981, #059669)',
+              border: 'none',
+              borderRadius: '50%',
+              cursor: 'pointer',
+              fontSize: '1.5rem',
+              width: 50,
+              height: 50,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 15px rgba(16,185,129,0.3)',
+              transition: 'transform 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            📷
+          </button>
           
           <button
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
