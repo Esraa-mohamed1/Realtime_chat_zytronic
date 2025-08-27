@@ -1,13 +1,17 @@
+
 # Real-Time Chat System (Node.js + Next.js + MySQL)
+
+https://github.com/user-attachments/assets/b4f6bd1c-815d-4fb1-98af-c0769385f959
+
 
 ## Objective
 Build a complete real-time chat system with authentication, 1:1 conversations, instant messaging via websockets, and image uploads.
 
 ## Tech Stack
 - Backend: Node.js, Express, Socket.io, TypeScript, JWT
-- Frontend: Next.js (App Router), React, TypeScript
+- Frontend: Next.js (App Router), TypeScript
 - Database: MySQL (ORM: Prisma or Sequelize; this template assumes Prisma)
-- Storage: Local FS by default (can be swapped for S3/GCS)
+- Storage: Local FS by default 
 
 ## Monorepo Layout
 ```
@@ -87,12 +91,3 @@ pnpm dev
 ## Environment Variables
 - Backend: `PORT`, `DATABASE_URL`, `JWT_SECRET`, `UPLOAD_DIR`, `CORS_ORIGIN`
 - Frontend: `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_SOCKET_URL`
-
-## Scripts (suggested)
-- Backend: dev (ts-node-dev), build (tsc), start (node dist/server.js)
-- Frontend: dev (next dev), build (next build), start (next start)
-
-## Notes
-- Swap local uploads with S3 by updating `storageService`.
-- Add rate-limiting and brute-force protection for production.
-- Ensure HTTPS and secure cookie settings in deployment. 
