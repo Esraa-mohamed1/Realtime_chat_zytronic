@@ -1,8 +1,8 @@
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
 
-export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
+export async function apiGet(path, init = {}) {
   const token = localStorage.getItem('token');
-  const headers = token ? { ...init?.headers, Authorization: `Bearer ${token}` } : init?.headers;
+  const headers = token ? { ...init.headers, Authorization: `Bearer ${token}` } : init.headers;
   
   const res = await fetch(`${API_BASE_URL}${path}`, { 
     ...init, 
@@ -13,11 +13,11 @@ export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json();
 }
 
-export async function apiPost<T>(path: string, data: any, init?: RequestInit): Promise<T> {
+export async function apiPost(path, data, init = {}) {
   const token = localStorage.getItem('token');
   const headers = {
     'Content-Type': 'application/json',
-    ...init?.headers,
+    ...init.headers,
     ...(token && { Authorization: `Bearer ${token}` })
   };
   
@@ -34,4 +34,4 @@ export async function apiPost<T>(path: string, data: any, init?: RequestInit): P
   }
   
   return res.json();
-} 
+}
