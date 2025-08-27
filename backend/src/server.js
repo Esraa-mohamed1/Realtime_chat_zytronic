@@ -18,11 +18,15 @@ io.of('/chat').on('connection', (socket) => {
 
   socket.on('message:send', (payload) => {
     if (!payload || typeof payload.body !== 'string') return;
+    
     const msg = {
       id: Math.random().toString(36).slice(2),
       body: payload.body,
       createdAt: new Date().toISOString(),
+      senderId: payload.senderId || 'unknown'
     };
+    
+    // Broadcast to all connected clients
     socket.nsp.emit('message:received', msg);
   });
 });

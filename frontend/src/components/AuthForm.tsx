@@ -1,5 +1,7 @@
 'use client';
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
+import { validateAuthForm } from '../lib/validation';
 
 interface AuthFormProps {
   mode?: 'login' | 'register';
@@ -16,49 +18,148 @@ export default function AuthForm({ mode = 'login', onSubmit, error }: AuthFormPr
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if form is completely empty
+    const isFormEmpty = !formData.email.trim() && !formData.password.trim() && (!formData.name || !formData.name.trim());
+    
+    if (isFormEmpty) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    
+    // Client-side validation
+    const validationErrors = validateAuthForm(formData, mode);
+    
+    if (validationErrors.length > 0) {
+      validationErrors.forEach(error => {
+        toast.error(error.message);
+      });
+      return;
+    }
+
     const data = mode === 'register' ? formData : { email: formData.email, password: formData.password };
     onSubmit(data);
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: '0 auto', padding: 24 }}>
-      <h2>{mode === 'login' ? 'Login' : 'Register'}</h2>
-      {error && <div style={{ color: 'red', marginBottom: 16 }}>{error}</div>}
-      
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {mode === 'register' && (
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {mode === 'register' && (
+        <div>
+          <label style={{ display: 'block', marginBottom: 8, color: '#333', fontWeight: 'bold' }}>
+            Name
+          </label>
           <input
             type="text"
-            placeholder="Name"
+            placeholder="Enter your name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-            style={{ padding: 8 }}
+            style={{
+              width: '100%',
+              padding: '15px 20px',
+              border: '2px solid #e1e5e9',
+              borderRadius: 15,
+              fontSize: '1rem',
+              outline: 'none',
+              transition: 'all 0.3s',
+              boxSizing: 'border-box'
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = '#667eea';
+              e.target.style.boxShadow = '0 0 0 3px rgba(102,126,234,0.1)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = '#e1e5e9';
+              e.target.style.boxShadow = 'none';
+            }}
           />
-        )}
-        
+        </div>
+      )}
+      
+      <div>
+        <label style={{ display: 'block', marginBottom: 8, color: '#333', fontWeight: 'bold' }}>
+          Email
+        </label>
         <input
-          type="email"
-          placeholder="Email"
+          type="text"
+          placeholder="Enter your email"
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          required
-          style={{ padding: 8 }}
+          style={{
+            width: '100%',
+            padding: '15px 20px',
+            border: '2px solid #e1e5e9',
+            borderRadius: 15,
+            fontSize: '1rem',
+            outline: 'none',
+            transition: 'all 0.3s',
+            boxSizing: 'border-box'
+          }}
+          onFocus={(e) => {
+            e.target.style.borderColor = '#667eea';
+            e.target.style.boxShadow = '0 0 0 3px rgba(102,126,234,0.1)';
+          }}
+          onBlur={(e) => {
+            e.target.style.borderColor = '#e1e5e9';
+            e.target.style.boxShadow = 'none';
+          }}
         />
-        
+      </div>
+      
+      <div>
+        <label style={{ display: 'block', marginBottom: 8, color: '#333', fontWeight: 'bold' }}>
+          Password
+        </label>
         <input
           type="password"
-          placeholder="Password"
+          placeholder="Enter your password"
           value={formData.password}
           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          required
-          style={{ padding: 8 }}
+          style={{
+            width: '100%',
+            padding: '15px 20px',
+            border: '2px solid #e1e5e9',
+            borderRadius: 15,
+            fontSize: '1rem',
+            outline: 'none',
+            transition: 'all 0.3s',
+            boxSizing: 'border-box'
+          }}
+          onFocus={(e) => {
+            e.target.style.borderColor = '#667eea';
+            e.target.style.boxShadow = '0 0 0 3px rgba(102,126,234,0.1)';
+          }}
+          onBlur={(e) => {
+            e.target.style.borderColor = '#e1e5e9';
+            e.target.style.boxShadow = 'none';
+          }}
         />
-        
-        <button type="submit" style={{ padding: 12, backgroundColor: '#007bff', color: 'white', border: 'none' }}>
-          {mode === 'login' ? 'Login' : 'Register'}
-        </button>
-      </form>
-    </div>
+      </div>
+      
+      <button 
+        type="submit" 
+        style={{
+          padding: '15px 20px',
+          background: 'linear-gradient(45deg, #667eea, #764ba2)',
+          color: 'white',
+          border: 'none',
+          borderRadius: 15,
+          fontSize: '1.1rem',
+          fontWeight: 'bold',
+          cursor: 'pointer',
+          transition: 'all 0.3s',
+          boxShadow: '0 4px 15px rgba(102,126,234,0.3)'
+        }}
+        onMouseOver={(e) => {
+          e.currentTarget.style.transform = 'translateY(-2px)';
+          e.currentTarget.style.boxShadow = '0 6px 20px rgba(102,126,234,0.4)';
+        }}
+        onMouseOut={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 4px 15px rgba(102,126,234,0.3)';
+        }}
+      >
+        {mode === 'login' ? 'Login ✨' : 'Register ✨'}
+      </button>
+    </form>
   );
 }
