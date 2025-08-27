@@ -27,9 +27,14 @@ export const validateAuthForm = (data: { email: string; password: string; name?:
   const errors: ValidationError[] = [];
 
   // Check if all fields are empty first
-  const isAllEmpty = !data.email.trim() && !data.password.trim() && (!data.name || !data.name.trim());
-  if (isAllEmpty) {
-    return [{ field: 'general', message: 'Please fill in all required fields' }];
+  if (mode === 'login') {
+    if (!data.email.trim() && !data.password.trim()) {
+      return [{ field: 'general', message: 'Please fill in all required fields' }];
+    }
+  } else { // register mode
+    if (!data.email.trim() && !data.password.trim() && (!data.name || !data.name.trim())) {
+      return [{ field: 'general', message: 'Please fill in all required fields' }];
+    }
   }
 
   const emailError = validateEmail(data.email);
@@ -38,8 +43,8 @@ export const validateAuthForm = (data: { email: string; password: string; name?:
   const passwordError = validatePassword(data.password);
   if (passwordError) errors.push({ field: 'password', message: passwordError });
 
-  if (mode === 'register') {
-    const nameError = validateName(data.name || '');
+  if (mode === 'register' && data.name !== undefined) {
+    const nameError = validateName(data.name);
     if (nameError) errors.push({ field: 'name', message: nameError });
   }
 

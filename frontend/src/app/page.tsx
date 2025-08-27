@@ -17,7 +17,7 @@ type Message = {
   body: string;
   createdAt: string;
   senderId?: string;
-  type?: 'text' | 'image';
+  type?: 'TEXT' | 'IMAGE';
   imageUrl?: string;
   sender?: {
     id: string;
@@ -73,7 +73,10 @@ export default function HomePage() {
   const handleAuth = async (data: any) => {
     try {
       setAuthError('');
+      console.log('Auth data:', data);
+      console.log('Auth mode:', authMode);
       const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
+      console.log('Sending request to:', endpoint);
       const result = await apiPost<AuthResult>(endpoint, data);
       
       localStorage.setItem('token', result.token);
@@ -82,6 +85,7 @@ export default function HomePage() {
       
       toast.success(authMode === 'login' ? 'Welcome back! 🎉' : 'Account created successfully! 🎉');
     } catch (error: any) {
+      console.error('Auth error:', error);
       toast.error(error.message || 'Authentication failed');
     }
   };
@@ -201,7 +205,7 @@ export default function HomePage() {
         socket.emit('message:send', { 
           body: trimmed || '📷 Image',
           senderId: user?.id,
-          type: 'image',
+          type: 'IMAGE',
           imageUrl
         });
         
@@ -215,7 +219,7 @@ export default function HomePage() {
         socket.emit('message:send', { 
           body: trimmed,
           senderId: user?.id,
-          type: 'text'
+          type: 'TEXT'
         });
       }
       
@@ -395,7 +399,7 @@ export default function HomePage() {
                 fontSize: '1.1rem',
                 lineHeight: 1.4
               }}>
-                {m.type === 'image' && m.imageUrl && (
+                {m.type === 'IMAGE' && m.imageUrl && (
                   <div style={{ marginBottom: 10 }}>
                     <img 
                       src={m.imageUrl} 
@@ -630,4 +634,4 @@ export default function HomePage() {
       </div>
     </div>
   );
-} 
+}

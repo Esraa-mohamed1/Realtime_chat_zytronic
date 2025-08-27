@@ -45,7 +45,7 @@ io.of('/chat').on('connection', async (socket) => {
       const message = await prisma.message.create({
         data: {
           body: payload.body,
-          type: payload.type || 'TEXT',
+          type: !payload.type || payload.type === 'text' ? 'TEXT' : payload.type.toUpperCase(),
           imageUrl: payload.imageUrl,
           senderId: payload.senderId || 'unknown',
           conversationId: 'default' // For now, using a default conversation
@@ -60,7 +60,7 @@ io.of('/chat').on('connection', async (socket) => {
       const msg = {
         id: message.id,
         body: message.body,
-        type: message.type.toLowerCase(),
+        type: message.type,
         imageUrl: message.imageUrl,
         createdAt: message.createdAt.toISOString(),
         senderId: message.senderId,
@@ -77,4 +77,4 @@ io.of('/chat').on('connection', async (socket) => {
 
 server.listen(port, () => {
   console.log(`API listening on http://localhost:${port}`);
-}); 
+});
