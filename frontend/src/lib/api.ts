@@ -34,4 +34,4 @@ export async function apiPost<T>(path: string, data: any, init?: RequestInit): P
   }
   
   return res.json();
-} 
+}
