@@ -1,0 +1,9 @@
+node_modules/
+dist/
+uploads/
+.env
+.env.local
+backend/.env
+frontend/.env.local
+.prisma/
+.next/
